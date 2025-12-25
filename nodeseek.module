@@ -5,8 +5,10 @@
 #!icon=https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/nodeseek.png
 
 [Script]
-nodeseek_cookie = type=http-request, pattern=^https:\/\/www\.nodeseek\.com, script-path=https://raw.githubusercontent.com/wellsgz/Egern-module/main/nodeseek_cookie.js, requires-body=false
+# Cookie capture - triggers when viewing profile API
+nodeseek_cookie = type=http-response, pattern=^https:\/\/www\.nodeseek\.com\/api\/account\/getInfo\/.+\?readme=1, script-path=https://raw.githubusercontent.com/wellsgz/Egern-module/main/nodeseek_cookie.js, requires-body=true
 
+# Daily check-in cron (9 AM daily)
 nodeseek_checkin = type=cron, cronexp="* * * * *", script-path=https://raw.githubusercontent.com/wellsgz/Egern-module/main/nodeseek_checkin.js
 
 [MITM]
