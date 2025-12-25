@@ -5,17 +5,9 @@
 #!icon=https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/nodeseek.png
 
 [Script]
-# Cookie capture script
-nodeseek_cookie = type=http-request, pattern=^https:\/\/www\.nodeseek\.com, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, requires-body=false, timeout=10
+nodeseek_cookie = type=http-request, pattern=^https:\/\/www\.nodeseek\.com, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, requires-body=false
 
-# Manual test trigger
-nodeseek_test = type=generic, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, timeout=60, argument=test
-
-# Daily check-in cron job
-nodeseek_checkin = type=cron, cronexp="0 9 * * *", timeout=60, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, script-update-interval=86400
-
-[Panel]
-NodeSeek_Panel = script-name=nodeseek_test, title="NodeSeek Check-in", content="Tap to run check-in", update-interval=-1
+nodeseek_checkin = type=cron, cronexp="0 9 * * *", script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js
 
 [MITM]
 hostname = %APPEND% www.nodeseek.com
