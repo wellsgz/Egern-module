@@ -1,74 +1,135 @@
-// NodeSeek Daily Check-in - Egern/Surge Compatible
-const cookieName = 'NodeSeek';
-const cookieKey = 'CookieNS';
+// NodeSeek Daily Check-in - Following Original Design
+const $ = new Env("NodeSeek");
+const ckName = "nodeseek_data";
 
-console.log('[NodeSeek] Check-in script started');
+// Get user cookie data
+const userCookie = $.toObj($.getdata(ckName)) || [];
 
-// Get saved cookie data
-const cookieData = $persistentStore.read(cookieKey);
-console.log('[NodeSeek] Cookie data retrieved: ' + (cookieData ? 'YES' : 'NO'));
+// Configuration
+const is_default = 'false'; // 'false' = fixed 5 drumsticks, 'true' = random
 
-if (!cookieData || cookieData === '') {
-    console.log('[NodeSeek] No cookie found');
-    $notification.post(cookieName + '签到', '❌ Cookie未获取', '请先访问www.nodeseek.com获取Cookie');
-    $done();
-} else {
-    // Parse the cookie data (it might be JSON or raw string)
-    let cookie;
+async function main() {
     try {
-        const parsed = JSON.parse(cookieData);
-        cookie = parsed.token || cookieData;
-        console.log('[NodeSeek] Cookie parsed from JSON');
-    } catch(e) {
-        cookie = cookieData;
-        console.log('[NodeSeek] Using cookie as raw string');
-    }
-    
-    console.log('[NodeSeek] Cookie length: ' + cookie.length);
-    
-    const url = 'https://www.nodeseek.com/api/attendance?random=true';
-    const headers = {
-        'Cookie': cookie,
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148',
-        'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'zh-CN,zh-Hans;q=0.9',
-        'Referer': 'https://www.nodeseek.com/',
-        'Origin': 'https://www.nodeseek.com'
-    };
-
-    console.log('[NodeSeek] Making POST request to: ' + url);
-
-    $httpClient.post({
-        url: url,
-        headers: headers
-    }, function(error, response, data) {
-        console.log('[NodeSeek] Response callback triggered');
+        console.log('[NodeSeek] Check-in script started');
+        console.log('[NodeSeek] Found ' + userCookie.length + ' account(s)');
         
-        if (error) {
-            console.log('[NodeSeek] Error: ' + error);
-            $notification.post(cookieName + '签到', '❌ 网络错误', String(error));
-        } else {
-            const statusCode = response.status || response.statusCode;
-            console.log('[NodeSeek] Status Code: ' + statusCode);
-            console.log('[NodeSeek] Response Data: ' + data);
+        if (!userCookie || userCookie.length === 0) {
+            throw new Error("no available accounts found");
+        }
+        
+        // Process each user account
+        for (let i = 0; i < userCookie.length; i++) {
+            const user = userCookie[i];
+            console.log(`[NodeSeek] Processing account ${i + 1}: ${user.userName || user.userId}`);
             
             try {
-                const obj = JSON.parse(data);
-                if (obj.success) {
-                    const reward = obj.data ? JSON.stringify(obj.data) : '签到成功';
-                    console.log('[NodeSeek] Check-in successful: ' + reward);
-                    $notification.post(cookieName + '签到', '✅ 签到成功', reward);
+                // Perform check-in
+                const signinResult = await signin(user, is_default);
+                console.log(`[NodeSeek] ${user.userName}: ${signinResult}`);
+                
+                // Get user info
+                const userInfo = await getUserInfo(user);
+                if (userInfo) {
+                    const message = `${user.userName}\n${signinResult}\n当前共${userInfo.coin}个鸡腿🍗`;
+                    $notification.post('NodeSeek签到', '✅ 签到成功', message);
                 } else {
-                    const message = obj.message || '未知错误';
-                    console.log('[NodeSeek] Check-in failed: ' + message);
-                    $notification.post(cookieName + '签到', '⚠️ 签到失败', message);
+                    $notification.post('NodeSeek签到', '⚠️ ' + signinResult, user.userName);
                 }
-            } catch(e) {
-                console.log('[NodeSeek] JSON parse error: ' + e);
-                console.log('[NodeSeek] Raw response: ' + data);
-                $notification.post(cookieName + '签到', '❌ 解析错误', data.substring(0, 100));
+                
+            } catch (e) {
+                console.log(`[NodeSeek] Error for ${user.userName}: ${e}`);
+                $notification.post('NodeSeek签到', '❌ 签到失败', `${user.userName}: ${e}`);
             }
         }
-        $done();
+        
+    } catch (e) {
+        console.log('[NodeSeek] Main error: ' + e);
+        $notification.post('NodeSeek签到', '❌ 脚本错误', String(e));
+    }
+    $done();
+}
+
+// Sign in function
+async function signin(user, isDefault) {
+    const url = `https://www.nodeseek.com/api/attendance?random=${isDefault}`;
+    const headers = {
+        'accept-encoding': 'gzip, deflate, br',
+        'sec-fetch-mode': 'cors',
+        'origin': 'https://www.nodeseek.com',
+        'referer': 'https://www.nodeseek.com/board',
+        'accept-language': 'zh-CN,zh-Hans;q=0.9',
+        'accept': '*/*',
+        'sec-fetch-dest': 'empty',
+        'cookie': user.token,
+        'content-length': '0',
+        'sec-fetch-site': 'same-origin',
+    };
+    
+    return new Promise((resolve, reject) => {
+        $httpClient.post({
+            url: url,
+            headers: headers
+        }, function(error, response, data) {
+            if (error) {
+                reject(error);
+            } else {
+                try {
+                    const result = JSON.parse(data);
+                    if (result.success) {
+                        resolve(result.message || '签到成功');
+                    } else {
+                        resolve(result.message || '签到失败');
+                    }
+                } catch(e) {
+                    reject('解析响应失败: ' + e);
+                }
+            }
+        });
     });
+}
+
+// Get user info function
+async function getUserInfo(user) {
+    const url = `https://www.nodeseek.com/api/account/getInfo/${user.userId}?readme=1`;
+    const headers = {
+        'accept-encoding': 'gzip, deflate, br',
+        'sec-fetch-mode': 'cors',
+        'origin': 'https://www.nodeseek.com',
+        'referer': 'https://www.nodeseek.com/board',
+        'accept-language': 'zh-CN,zh-Hans;q=0.9',
+        'accept': '*/*',
+        'sec-fetch-dest': 'empty',
+        'cookie': user.token,
+        'sec-fetch-site': 'same-origin',
+    };
+    
+    return new Promise((resolve, reject) => {
+        $httpClient.get({
+            url: url,
+            headers: headers
+        }, function(error, response, data) {
+            if (error) {
+                resolve(null);
+            } else {
+                try {
+                    const result = JSON.parse(data);
+                    resolve(result.detail);
+                } catch(e) {
+                    resolve(null);
+                }
+            }
+        });
+    });
+}
+
+// Execute main function
+main();
+
+// Env class for compatibility
+function Env(name) {
+    this.name = name;
+    this.toObj = (str) => {
+        try { return JSON.parse(str); } catch { return null; }
+    };
+    this.getdata = (key) => $persistentStore.read(key);
 }
