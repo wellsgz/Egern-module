@@ -1,15 +1,15 @@
 #!name=NodeSeek Daily Check-in
 #!desc=NodeSeek forum automatic daily check-in
-#!author=Sliverkiss
-#!homepage=https://github.com/Sliverkiss
+#!author=Sliverkiss & Wells
+#!homepage=https://github.com/wellsgz/Egern-module
 #!icon=https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/nodeseek.png
 
 [Script]
-# Change to http-response to access $response variable
-nodeseek_cookie = type=http-response, pattern=^https:\/\/www\.nodeseek\.com, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, requires-body=true
+# Cookie capture - use http-request to get Cookie header
+nodeseek_cookie = type=http-request, pattern=^https:\/\/www\.nodeseek\.com, script-path=https://raw.githubusercontent.com/wellsgz/Egern-module/main/nodeseek_cookie.js, requires-body=false
 
 # Daily check-in cron
-nodeseek_checkin = type=cron, cronexp="* * * * *", script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, timeout=30, wake-system=1
+nodeseek_checkin = type=cron, cronexp="* * * * *", script-path=https://raw.githubusercontent.com/wellsgz/Egern-module/main/nodeseek_checkin.js, timeout=30, wake-system=1
 
 [MITM]
 hostname = %APPEND% www.nodeseek.com
