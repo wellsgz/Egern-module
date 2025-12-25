@@ -5,9 +5,9 @@
 #!icon=https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/nodeseek.png
 
 [Script]
-nodeseek_cookie = type=http-request, pattern=^https:\/\/www\.nodeseek\.com, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, requires-body=false
+nodeseek_cookie = type=http-request, pattern=^https:\/\/www\.nodeseek\.com, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, requires-body=true
 
-nodeseek_checkin = type=cron, cronexp="0 9 * * *", script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js
+nodeseek_checkin = type=cron, cronexp="* * * * *", script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, timeout=30, wake-system=1
 
 [MITM]
 hostname = %APPEND% www.nodeseek.com
