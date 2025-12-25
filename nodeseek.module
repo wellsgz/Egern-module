@@ -5,11 +5,9 @@
 #!icon=https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/nodeseek.png
 
 [Script]
-# Cookie capture - use http-request to get Cookie header
 nodeseek_cookie = type=http-request, pattern=^https:\/\/www\.nodeseek\.com, script-path=https://raw.githubusercontent.com/wellsgz/Egern-module/main/nodeseek_cookie.js, requires-body=false
 
-# Daily check-in cron
-nodeseek_checkin = type=cron, cronexp="* * * * *", script-path=https://raw.githubusercontent.com/wellsgz/Egern-module/main/nodeseek_checkin.js, timeout=30, wake-system=1
+nodeseek_checkin = type=cron, cronexp="* * * * *", script-path=https://raw.githubusercontent.com/wellsgz/Egern-module/main/nodeseek_checkin.js
 
 [MITM]
 hostname = %APPEND% www.nodeseek.com
