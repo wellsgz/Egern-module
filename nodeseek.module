@@ -1,0 +1,11 @@
+#!name=NodeSeek Daily Check-in
+#!desc=NodeSeek forum automatic daily check-in
+#!author=Sliverkiss
+#!homepage=https://github.com/Sliverkiss
+#!icon=https://raw.githubusercontent.com/Sliverkiss/QuantumultX/main/icon/nodeseek.png
+
+[Script]
+nodeseek_checkin = type=cron, cronexp="0 9 * * *", timeout=60, script-path=https://gist.githubusercontent.com/Sliverkiss/2b5acc2c4960dd06618c6912302c2c7f/raw/nodeseek.js, script-update-interval=86400
+
+[MITM]
+hostname = %APPEND% www.nodeseek.com
